@@ -40,6 +40,7 @@ def handle_client (clientSocket):
 
 while True:
     connectionSocket, address = clientSocket.accept()
-    handle_client(connectionSocket)
+    Thread(target=handle_client,args=(connectionSocket,)).start()
+    #handle_client(connectionSocket)
 
 
