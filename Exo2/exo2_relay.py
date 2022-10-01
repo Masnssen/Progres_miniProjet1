@@ -38,9 +38,9 @@ def handle_client (clientSocket):
            # Parse HTTP headers
             headers = request.split('\n')
             filename = headers[0].split()[1]
-            file_exists = exists("cache/"+filename[1:])
+            file_exists = exists("cacheDir/"+filename[1:])
             if(file_exists):
-                 fin = open("cache/"+filename[1:]) 
+                 fin = open("cacheDir/"+filename[1:]) 
                  content = fin.read()
                  fin.close()
                  response = 'HTTP/1.0 200 OK\n\n' + content
