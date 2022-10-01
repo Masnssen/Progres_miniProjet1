@@ -8,7 +8,6 @@ from time import *
 from threading import *
 from os.path import exists
 
-
 clientPort_listening = 2020
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
@@ -22,12 +21,12 @@ serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
 
 print ('Relayer Ready')
-sleep(60)
+
 
 def handle_client (clientSocket):
     while True:
         try:
-            request = clientSocket.recv(1024).decode()
+            request = clientSocket.recv(2028).decode("utf-8")
         except  OSError:
             clientSocket.close()
             break
@@ -39,20 +38,25 @@ def handle_client (clientSocket):
             headers = request.split('\n')
             filename = headers[0].split()[1]
             file_exists = exists("cacheDir/"+filename[1:])
+            print(file_exists)
             if(file_exists):
                  fin = open("cacheDir/"+filename[1:]) 
                  content = fin.read()
                  fin.close()
-                 response = 'HTTP/1.0 200 OK\n\n' + content
-                 clientSocket.send(response)  
+                 response = content
+                 clientSocket.sendall(response.encode("utf-8"),)  
+                 clientSocket.close()
+                 break
             else:
-                
                 serverSocket.sendall(request.encode("utf-8"))
                 serverData = serverSocket.recv(2048)
-                file = open(filename[1:],"w")
-                file.write(serverData)
+                file = open("cacheDir/"+filename[1:],"w")
+                file.write(serverData.decode("utf-8"))
                 file.close()
-                clientSocket.send(serverData)
+                print(serverData.decode("utf-8"))
+                clientSocket.sendall(serverData)
+                clientSocket.close()
+                break
 
 
 while True:
