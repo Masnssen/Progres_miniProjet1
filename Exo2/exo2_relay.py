@@ -57,12 +57,12 @@ def handle_client (clientSocket):
                     os.makedirs(os.path.dirname(path), exist_ok=True)
                     return open(path, 'w')
 
-                with safe_open_w('cacheDir'+filename[1:]) as f:
+                with safe_open_w('cacheDir/'+filename[1:]) as f:
                     f.write(serverData.decode("utf-8"))
 
                 #file = open("cacheDir/"+filename[1:],"w")
                 #file.write(serverData.decode("utf-8"))
-                file.close()
+                f.close()
                 print(serverData.decode("utf-8"))
                 clientSocket.sendall(serverData)
                 clientSocket.close()
