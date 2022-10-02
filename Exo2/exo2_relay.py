@@ -7,6 +7,8 @@ from socket import *
 from time import *
 from threading import *
 from os.path import exists
+import os, os.path
+
 
 clientPort_listening = 2020
 
@@ -50,8 +52,16 @@ def handle_client (clientSocket):
             else:
                 serverSocket.sendall(request.encode("utf-8"))
                 serverData = serverSocket.recv(2048)
-                file = open("cacheDir/"+filename[1:],"w")
-                file.write(serverData.decode("utf-8"))
+                def safe_open_w(path):
+                    #open "path" en w, create dir if needed
+                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                    return open(path, 'w')
+
+                with safe_open_w('cacheDir'+filename[1:]) as f:
+                    f.write(serverData.decode("utf-8"))
+
+                #file = open("cacheDir/"+filename[1:],"w")
+                #file.write(serverData.decode("utf-8"))
                 file.close()
                 print(serverData.decode("utf-8"))
                 clientSocket.sendall(serverData)
