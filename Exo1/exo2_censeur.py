@@ -3,7 +3,7 @@ from time import *
 from threading import *
 import json
 
-clientPort_listening = 8888
+clientPort_listening = 8080
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))
@@ -19,7 +19,7 @@ print ('Relayer Ready')
 
 def analyseRequete(request):
     listeParam = request.split(" ")
-    if len(listeParam) >= 3 and listeParam[0].upper() == "GET":
+    if len(listeParam) >= 3 and listeParam[0].upper() == "GET" and listeParam[2][0:4].upper() == "HTTP":
         return listeParam[1]
     return ""
     
@@ -38,19 +38,19 @@ def handle_client (clientSocket, address):
         else:
             # Parse HTTP headers
             file_name = analyseRequete(request)
-            print(address[0])
-            if(file_name[1:] != ""):
+
+            if(file_name != ""):
                 #check if not in blacklist
                 file = open("config","r")
                 data = file.read()
                 file.close()
                 #print("les liens blacklisté : ", data["blacklist"])
                 data = json.loads(data)
-                print(data[0])
                 if file_name in data:
-                    fin = open('forbiden.txt','r')
-                    content = fin.read()
-                    fin.close()
+                    #fin = open('forbiden.txt','r')
+                    #content = fin.read()
+                    #fin.close()
+                    content = "acces interdit!!!!!!!!!!"
                     response = "HTTP/1.1 403 OK\nContent-Type : text/html\n\n" + content 
                     clientSocket.sendall(response.encode("utf-8"))
                     clientSocket.close()
