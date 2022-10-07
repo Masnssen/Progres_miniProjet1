@@ -3,19 +3,19 @@ from time import *
 from threading import *
 import json
 
-clientPort_listening = 8888
+clientPort_listening = 4444
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))
-clientSocket.listen(4)
+clientSocket.listen(1)
 
 serverName = '127.0.0.1'
-serverPort = 8000
+serverPort = 9999
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
 
-print ('Relayer Ready')
+print ('sniffer Ready')
 
 def analyseRequete(request):
     listeParam = request.split(" ")
@@ -29,6 +29,7 @@ def handle_client (clientSocket, address):
     while True:
         try:
             request = clientSocket.recv(2048).decode("utf-8")
+            print("New requeste",request)
         except  OSError:
             clientSocket.close()
             break
@@ -38,7 +39,7 @@ def handle_client (clientSocket, address):
         else:
             # Parse HTTP headers
             file_name = analyseRequete(request)
-            print(address[0])
+           
             if(file_name[1:] != ""):
                 #Ajouter la requete et le client dans le fichier
                 file = open("log","r")
@@ -59,7 +60,6 @@ def handle_client (clientSocket, address):
                         data = json.dumps(data)
                 else:
                     data = {file_name: {address[0] : [False, 0]}}
-                    print(data)
                     data = json.dumps(data)
                     
                 file = open("log", "w")
@@ -93,5 +93,6 @@ def handle_client (clientSocket, address):
 
 while True:
     connectionSocket, address = clientSocket.accept()
+    print("new client send")
     Thread(target=handle_client,args=(connectionSocket, address,)).start()
     #handle_client(connectionSocket)
