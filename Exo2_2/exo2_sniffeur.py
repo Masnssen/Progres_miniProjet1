@@ -3,14 +3,14 @@ from time import *
 from threading import *
 import json
 
-clientPort_listening = 8888
+clientPort_listening = 3030
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(4)
 
 serverName = '127.0.0.1'
-serverPort = 8000
+serverPort = 8888
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
@@ -38,8 +38,8 @@ def handle_client (clientSocket, address):
         else:
             # Parse HTTP headers
             file_name = analyseRequete(request)
-            print(address[0])
-            if(file_name[1:] != ""):
+            
+            if(file_name != ""):
                 #Ajouter la requete et le client dans le fichier
                 file = open("log","r")
                 data = file.read()
@@ -82,10 +82,9 @@ def handle_client (clientSocket, address):
                         file.close()
 
                 print(serverData.decode("utf-8"))
-                clientSocket.sendall(serverData)
-                clientSocket.close()
-                break
+                clientSocket.sendall(serverData) 
             else:
+                clientSocket.sendall("Error not http request".encode("utf-8")) 
                 clientSocket.close()
                 break
 
