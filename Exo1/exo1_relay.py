@@ -9,7 +9,7 @@ clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(1)
 
 serverName = '127.0.0.1'
-serverPort = 6000
+serverPort = 7000
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
@@ -27,10 +27,9 @@ def handle_client (clientSocket):
             clientSocket.close()
             break
         else:
-            print(clientData.decode("utf-8"))
             serverSocket.sendall(clientData)
             serverData = serverSocket.recv(2048)
-            clientSocket.send(serverData)
+            clientSocket.sendall(serverData)
 
 
 while True:

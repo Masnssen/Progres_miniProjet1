@@ -8,7 +8,6 @@ serverSocket.bind (('',serverPort))
 serverSocket.listen(1)
 connectionSocket, address = serverSocket.accept()
 print ('Server Ready')
-sleep(30)
 while True:
     message = connectionSocket.recv(2048)
     modifiedMesage= message.decode("utf-8").upper()

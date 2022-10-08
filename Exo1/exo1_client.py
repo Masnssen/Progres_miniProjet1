@@ -2,7 +2,7 @@ from socket import *
 from time import *
 
 serverName = '127.0.0.1'
-serverPort = 2000
+serverPort = 3000
 
 clientSocket = socket(AF_INET,SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
