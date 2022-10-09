@@ -59,8 +59,6 @@ def handle_client (clientSocket, address):
                     serverData = serverSocket.recv(2048)
                     print(serverData.decode("utf-8"))
                     clientSocket.sendall(serverData)
-                    clientSocket.close()
-                    break
             else:
                 clientSocket.close()
                 break

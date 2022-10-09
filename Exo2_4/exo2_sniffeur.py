@@ -1,13 +1,9 @@
-"""
-    Ajouter si fichier log n'existe pas le cree vide 
-"""
-
 from socket import *
 from time import *
 from threading import *
 import json
 
-clientPort_listening = 3030
+clientPort_listening = 5050
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))

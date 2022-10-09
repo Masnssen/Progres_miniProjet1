@@ -12,7 +12,7 @@ clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(1)
 
 serverName = '127.0.0.1'
-serverPort = 8888
+serverPort = 5050
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
