@@ -58,8 +58,14 @@ def handle_client (clientSocket, address):
                     serverSocket.sendall(request.encode("utf-8"))
                     serverData = serverSocket.recv(2048)
                     print(serverData.decode("utf-8"))
+                    if not serverData:
+                        serverData.close()
+                        clientSocket.sendall("Error serveur non disponible ".encode("utf-8"))
+                        clientSocket.close()
+                        break
                     clientSocket.sendall(serverData)
             else:
+                clientSocket.sendall("Error not http request".encode("utf-8")) 
                 clientSocket.close()
                 break
 

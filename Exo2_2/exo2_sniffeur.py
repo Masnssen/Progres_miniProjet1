@@ -6,15 +6,16 @@ from socket import *
 from time import *
 from threading import *
 import json
+from pathlib import Path
 
-clientPort_listening = 3030
+clientPort_listening = 3000
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(4)
 
 serverName = '127.0.0.1'
-serverPort = 8888
+serverPort = 8080
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
@@ -44,11 +45,16 @@ def handle_client (clientSocket, address):
             file_name = analyseRequete(request)
             
             if(file_name != ""):
+                #Ajouter le fichier log s'il n'existe pas 
+                if not Path("log").is_file():
+                    file = open("log", "w")
+                    file.close()
+
                 #Ajouter la requete et le client dans le fichier
                 file = open("log","r")
                 data = file.read()
                 file.close()
-                print("Les donnees", data)
+                
                 if data != "":
                     data = json.loads(data)
                     if file_name in data:
@@ -63,7 +69,6 @@ def handle_client (clientSocket, address):
                         data = json.dumps(data)
                 else:
                     data = {file_name: {address[0] : [False, 0]}}
-                    print(data)
                     data = json.dumps(data)
                     
                 file = open("log", "w")
@@ -72,8 +77,14 @@ def handle_client (clientSocket, address):
 
                 serverSocket.sendall(request.encode("utf-8"))
                 serverData = serverSocket.recv(2048)
+        
+                if not serverData:
+                    serverSocket.close()
+                    clientSocket.sendall("Error serveur non disponible ".encode("utf-8")) 
+                    clientSocket.close()
+                    break
 
-                if serverData.decode("utf-8").split(" ")[1] != "404":
+                if len(serverData.decode("utf-8").split(" ")) > 2 and serverData.decode("utf-8").split(" ")[1] != "404":
                     file = open("log", "r")
                     data = file.read()
                     file.close()
@@ -85,12 +96,12 @@ def handle_client (clientSocket, address):
                         file.write(data)
                         file.close()
 
-                print(serverData.decode("utf-8"))
                 clientSocket.sendall(serverData) 
             else:
                 clientSocket.sendall("Error not http request".encode("utf-8")) 
                 clientSocket.close()
                 break
+
 
 
 

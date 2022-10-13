@@ -21,7 +21,7 @@ def analyseRequete(request):
     return ""
     
 
-SERVER_PORT = 8888
+SERVER_PORT = 8080
 
 server_socket = socket(AF_INET,SOCK_STREAM)
 server_socket.bind(('', SERVER_PORT))
@@ -37,7 +37,11 @@ while True:
 
     request = connectionSocket.recv(2048).decode("utf-8")
     # Parse HTTP headers
-    
+    if not request:
+        print("relayer déconnecter")
+        connectionSocket.close()
+        break
+
     filename = analyseRequete(request)
     
     # Get the content of the file

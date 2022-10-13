@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def findFille(file_name):
-    print(file_name)
+
     txt = ""
     if exists(file_name):
         if Path(file_name).is_file():
@@ -21,7 +21,7 @@ def analyseRequete(request):
     return ""
     
 
-SERVER_PORT = 8888
+SERVER_PORT = 8080
 
 server_socket = socket(AF_INET,SOCK_STREAM)
 server_socket.bind(('', SERVER_PORT))

@@ -1,7 +1,7 @@
 from socket import *
 from time import *
 from threading import *
-from os.path import exists
+from pathlib import Path
 import os, os.path
 
 
@@ -12,12 +12,12 @@ clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(1)
 
 serverName = '127.0.0.1'
-serverPort = 5050
+serverPort = 8080
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
 
-print ('Relayer Ready')
+print ('Cache Ready')
 
 def safe_open_w(path):
     #open "path" en w, create dir if needed
@@ -30,7 +30,6 @@ def handle_client (clientSocket):
     while True:
         try:
             request = clientSocket.recv(2028).decode("utf-8")
-            print(request)
         except  OSError:
             clientSocket.close()
             break
@@ -45,9 +44,7 @@ def handle_client (clientSocket):
             if filename[1:] == "":
                 file_exists = False
             else:
-                file_exists = exists("cacheDir/"+filename[1:])
-            
-            print(file_exists)
+                file_exists = Path("cacheDir/"+filename[1:]).is_file()
             if(file_exists):
                 fin = open("cacheDir/"+filename[1:]) 
                 content = fin.read()
@@ -57,19 +54,18 @@ def handle_client (clientSocket):
             else:
                 serverSocket.sendall(request.encode("utf-8"))
                 serverData = serverSocket.recv(2048)
-                print(serverData.decode("utf-8"))
+               
                 if serverData.decode("utf-8").split(" ")[1] == "200":
                     with safe_open_w('cacheDir/'+filename[1:]) as f:
                         f.write(serverData.decode("utf-8"))
                         f.close()
-                        print(serverData.decode("utf-8"))
+                        
                 clientSocket.sendall(serverData)
                
                 
-
 while True:
     connectionSocket, address = clientSocket.accept()
     Thread(target=handle_client,args=(connectionSocket,)).start()
-    #handle_client(connectionSocket)
+    
 
 
