@@ -1,1 +1,1 @@
-{"/helloword": {"127.0.0.1": [false, 0]}, "/favicon.ico": {"127.0.0.1": [false, 5]}, "/": {"127.0.0.1": [false, 1]}, "/massi": {"127.0.0.1": [false, 2]}, "/cd": {"127.0.0.1": [false, 2]}, "/czczc": {"127.0.0.1": [false, 2]}, "/cdcdc": {"127.0.0.1": [false, 8]}}
+{"/dossier1/file1.txt": {"127.0.0.1": [true, 1]}, "/file.txt": {"127.0.0.1": [false, 1]}}

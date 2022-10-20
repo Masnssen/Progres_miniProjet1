@@ -21,7 +21,7 @@ def analyseRequete(request):
     return ""
     
 
-SERVER_PORT = 8080
+SERVER_PORT = 4040
 
 server_socket = socket(AF_INET,SOCK_STREAM)
 server_socket.bind(('', SERVER_PORT))
@@ -37,7 +37,7 @@ while True:
 
     request = connectionSocket.recv(2048).decode("utf-8")
     # Parse HTTP headers
-    
+    print("request recieved....")
     filename = analyseRequete(request)
     
     content = findFille(filename[1:])

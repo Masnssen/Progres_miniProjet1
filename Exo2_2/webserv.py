@@ -21,7 +21,7 @@ def analyseRequete(request):
     return ""
     
 
-SERVER_PORT = 8080
+SERVER_PORT = 7777
 
 server_socket = socket(AF_INET,SOCK_STREAM)
 server_socket.bind(('', SERVER_PORT))

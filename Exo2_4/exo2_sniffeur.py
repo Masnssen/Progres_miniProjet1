@@ -7,15 +7,16 @@ from time import *
 from threading import *
 import json
 from pathlib import Path
+import os
 
-clientPort_listening = 3000
+clientPort_listening = 9666
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(4)
 
 serverName = '127.0.0.1'
-serverPort = 8080
+serverPort = 9888
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
@@ -68,7 +69,7 @@ def handle_client (clientSocket, address):
                         data.update({file_name : {address[0] : [False, 1]}})
                         data = json.dumps(data)
                 else:
-                    data = {file_name: {address[0] : [False, 0]}}
+                    data = {file_name: {address[0] : [False, 1]}}
                     data = json.dumps(data)
                     
                 file = open("log", "w")
@@ -82,6 +83,8 @@ def handle_client (clientSocket, address):
                     serverSocket.close()
                     clientSocket.sendall("Error serveur non disponible ".encode("utf-8")) 
                     clientSocket.close()
+                    print("Le serveur n'est pas disponible")
+                    os._exit(0)
                     break
 
                 if len(serverData.decode("utf-8").split(" ")) > 2 and serverData.decode("utf-8").split(" ")[1] != "404":

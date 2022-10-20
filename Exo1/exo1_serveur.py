@@ -1,7 +1,7 @@
 from socket import *
 from time import *
 
-serverPort = 7000
+serverPort = 9080
 serverSocket = socket (AF_INET, SOCK_STREAM)
 serverSocket.bind (('',serverPort))
 

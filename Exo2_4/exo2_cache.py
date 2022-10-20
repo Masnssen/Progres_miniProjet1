@@ -5,14 +5,14 @@ from pathlib import Path
 import os, os.path
 
 
-clientPort_listening = 4000
+clientPort_listening = 9000
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.bind(('', clientPort_listening))
 clientSocket.listen(1)
 
 serverName = '127.0.0.1'
-serverPort = 8080
+serverPort = 9666
 
 serverSocket = socket(AF_INET,SOCK_STREAM)
 serverSocket.connect((serverName,serverPort))
@@ -54,7 +54,13 @@ def handle_client (clientSocket):
             else:
                 serverSocket.sendall(request.encode("utf-8"))
                 serverData = serverSocket.recv(2048)
-               
+                if not serverData:
+                    serverSocket.close()
+                    clientSocket.sendall("Error serveur non disponible ".encode("utf-8")) 
+                    clientSocket.close()
+                    print("Le serveur n'est pas disponible")
+                    os._exit(0)
+                    break
                 if serverData.decode("utf-8").split(" ")[1] == "200":
                     with safe_open_w('cacheDir/'+filename[1:]) as f:
                         f.write(serverData.decode("utf-8"))
