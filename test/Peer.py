@@ -2,21 +2,25 @@ from math import pow, log
 import hashlib 
 
 class Peer :
-    nbMax = pow(2, 128)
+    m = 128
+    nbMax = 100
     listePeers = dict()
 
-    def __init__(self, id, hash, pred, suc, finger):
+    def __init__(self, id, hash):
 
         self.id = id 
         self.hash = hash 
-        self.pred = pred                                       
-        self.suc = suc 
-        self.finger = finger
-
+        self.pred = self.predecessor(hash, list(self.listePeers.keys()))
+        self.suc = self.successor(hash, list(self.listePeers.keys()))
+        self.update_finger(list(self.listePeers.keys()))
+       
         self.listePeers[hash] = self 
 
 
     def successor(self, key, hash_list):
+         #Si y'a aucun element dans hash_list
+        if len(hash_list) == 0:
+            return key
         #Si la clé dépasse l'espace des clés 
         if(key > self.nbMax):
             key = key%self.nbMax
@@ -28,16 +32,20 @@ class Peer :
         return hash_list[0] # si on est la alors la clé et entre le dernier élement et le premier 
 
     def predecessor(self, key, hash_list):
+        #Si y'a aucun element dans hash_list
+        if len(hash_list) == 0:
+            return key
         #Si la clé dépasse l'espace des clés autorisé ou elle est négatif ou null alors ne rien retourner
         if(key > self.nbMax):
             key = key % self.nbMax
         #Parcours la liste des paires pour savoir ou se situe la clè k
-        for  i in range(0,len(hash_list)-1):
+        for i in range(0,len(hash_list)-1):
             if key > hash_list[i] and key <= hash_list[i+1]: #Si la clé k est entre l'élement i et i+1 alors returner l'élement i
                 return hash_list[i]
         return hash_list[len(hash_list)-1] # si on est la alors la clé et entre le dernier élement et le premier alors returner le dernier élement
 
     def update_finger(self, hash_list): 
+       
         ###Mettre a jour le successor de la clè 
         self.suc = self.successor(self.hash, hash_list)
         self.pred = self.predecessor(self.hash, hash_list)
@@ -50,6 +58,7 @@ class Peer :
             #Si la clé n'est pas déjà ajoutée et k n'est pas dans sa propre table
             if self.successor( ((k+pow(2,i))%self.nbMax), hash_list) not in self.finger and k != self.successor( ((k+pow(2,i))%self.nbMax), hash_list): 
                 self.finger.append(self.successor((k+pow(2,i))%self.nbMax, hash_list)) #ajouter le successeur de la clé (k + 2^j)
+        
 
     def give_neighbors(self):
         hash_list = [self.hash]
@@ -77,7 +86,7 @@ class Peer :
         if peerSuc.hash not in hash_table:
             hash_table.append(peerSuc.hash)
             
-        print(hash_table)
+    
         self.update_finger(hash_table)
         return hash_table
 
@@ -97,38 +106,37 @@ class Peer :
         actuel = self.hash 
         suiv = dht[actuel].suc
         while not self.isincharge(dht[suiv].hash, key): #Si le next n'est pas en charge alors
-        
-            finger = dht[actuel]["finger"] #Récupérer la finger table 
+            finger = dht[actuel].finger #Récupérer la finger table 
             best = 0
             distBest = 0
             #Calcul de la distance du premier élément de la finger table
-            if finger[0] > cle : #On regarde devant 
-                distBest = (Nmax % finger[0]) + cle  
+            if finger[0] > key : #On regarde devant 
+                distBest = (self.nbMax % finger[0]) + key  
             else:
-                distBest = cle - finger[0]
+                distBest = key - finger[0]
+            
         
-        #Chercher la distance minimale 
-        i = 1
-        while i < len(finger):
-            if finger[i] > cle :
-                dist = (Nmax % finger[i]) + cle 
-            else:
-                dist = cle - finger[i]
+            #Chercher la distance minimale 
+            i = 1
+            while i < len(finger):
+                if finger[i] > key :
+                    dist = (self.nbMax % finger[i]) + key 
+                else:
+                    dist = key - finger[i]
             
-            if dist < distBest :
-                distBest = dist
-                best = i
+                if dist < distBest :
+                    distBest = dist
+                    best = i
+                i+=1
             
-            i+=1
-            
-
-        actuel = finger[best]
-        chemin.append(actuel)
-        suiv = dht[actuel]["next"]
+            dist += 1
+            actuel = finger[best]
+            chemin.append(actuel)
+            suiv = dht[actuel].suc
     
-    #Ajouter la derniere key
-    chemin.append(suiv)
-    return chemin
+        #Ajouter la derniere key
+        chemin.append(suiv)
+        return suiv, dist
     
 
     def table():
