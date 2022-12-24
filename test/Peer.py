@@ -4,13 +4,15 @@ import hashlib
 class Peer :
     nbMax = pow(2, 128)
     listePeers = dict()
+
     def __init__(self, id, hash, pred, suc, finger):
 
         self.id = id 
         self.hash = hash 
         self.pred = pred                                       
         self.suc = suc 
-        self.finger = finger 
+        self.finger = finger
+
         self.listePeers[hash] = self 
 
 
@@ -44,7 +46,7 @@ class Peer :
         k = self.hash
         self.finger = [] #initialiser la table finger
        
-        for i in range(0,m): #ne pas dépasser 2^m (la dèrnière clé passible dans m)
+        for i in range(0,m): #ne pas dépasser 2^m (la dèrnière clé possible dans m)
             #Si la clé n'est pas déjà ajoutée et k n'est pas dans sa propre table
             if self.successor( ((k+pow(2,i))%self.nbMax), hash_list) not in self.finger and k != self.successor( ((k+pow(2,i))%self.nbMax), hash_list): 
                 self.finger.append(self.successor((k+pow(2,i))%self.nbMax, hash_list)) #ajouter le successeur de la clé (k + 2^j)
@@ -62,15 +64,72 @@ class Peer :
         return hash_list
 
     def refresh_finger(self):
-        print(self.listePeers[self.suc].id)
-        print(self.listePeers[self.pred].id)
-        return self.listePeers[self.suc]  
+        hash_table = [] 
+        peerSuc = self.listePeers[self.suc]
+        peerPred = self.listePeers[self.pred]
+        
+        while peerSuc != peerPred:
+            hash_table.append(peerSuc.hash)
+            hash_table.append(peerPred.hash)
+            peerSuc = self.listePeers[peerSuc.suc]
+            peerPred = self.listePeers[peerPred.pred]
+        
+        if peerSuc.hash not in hash_table:
+            hash_table.append(peerSuc.hash)
+            
+        print(hash_table)
+        self.update_finger(hash_table)
+        return hash_table
 
-    def isincharge(key):
-        return "we have"
+    def isincharge(self, key):
+        if key >= self.pred and key < self.hash:
+            return True
+        return False
 
-    def lookup(key, dht):
-        return "we have"
+    def lookup(self ,key, dht):
+        #Ajouter le cas ou la cle de la fingerTable est supprimer de la dht    
+        chemin = [self.hash] #Ajouter le noeud d'entrer à la liste des chemins
+        dist = 0
+        if self.isincharge(dht[self.hash].hash, key) or len(dht.keys()) == 1: #Si le premier pair est responsable de cle, le retourner directement
+            return chemin.pop(), dist
+    
+    
+        actuel = self.hash 
+        suiv = dht[actuel].suc
+        while not self.isincharge(dht[suiv].hash, key): #Si le next n'est pas en charge alors
+        
+            finger = dht[actuel]["finger"] #Récupérer la finger table 
+            best = 0
+            distBest = 0
+            #Calcul de la distance du premier élément de la finger table
+            if finger[0] > cle : #On regarde devant 
+                distBest = (Nmax % finger[0]) + cle  
+            else:
+                distBest = cle - finger[0]
+        
+        #Chercher la distance minimale 
+        i = 1
+        while i < len(finger):
+            if finger[i] > cle :
+                dist = (Nmax % finger[i]) + cle 
+            else:
+                dist = cle - finger[i]
+            
+            if dist < distBest :
+                distBest = dist
+                best = i
+            
+            i+=1
+            
+
+        actuel = finger[best]
+        chemin.append(actuel)
+        suiv = dht[actuel]["next"]
+    
+    #Ajouter la derniere key
+    chemin.append(suiv)
+    return chemin
+    
 
     def table():
         return "Table"
