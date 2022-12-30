@@ -1,22 +1,22 @@
-from math import pow, log
-import hashlib 
+from math import pow, log, ceil
+
 import wikipedia
-import logging
 
 class Peer :
-    m = 160
+    m = ceil(log(100)/log(2))
     nbMax = int(pow(2, m))
     listePeers = dict()
-    
     def __init__(self, id, dht, entrie):
+        
         self.id = id 
-        self.hash = int(hashlib.sha1(str(id).encode()).hexdigest(), base = 16)
+        #self.hash = int(hashlib.sha1(str(id).encode()).hexdigest(), base = 16)
+        self.hash = id
         self.table = dict()
-        self.finger = [] 
+        self.finger = []
         if( entrie not in list(dht.keys())):
             entrie = 0
         
-        entrie = int(hashlib.sha1(str(entrie).encode()).hexdigest(), base = 16)
+        #entrie = int(hashlib.sha1(str(entrie).encode()).hexdigest(), base = 16)
         
         if len(list(dht.keys())) != 0:
             self.pred = dht[entrie].arrivale(self.hash, dht)
@@ -28,8 +28,8 @@ class Peer :
         
         dht[self.hash] = self
         dht[self.suc].pred = self.hash
-        
-        self.listePeers = dht
+        self.listePeers[self.hash] = self
+        self.listePeers[self.suc].pred = self.hash
 
     def arrivale(self, key, dht):
         pred = self.predecessor(key, list(dht.keys()))
@@ -114,55 +114,57 @@ class Peer :
         return hash_table
 
     def isincharge(self, key):
-        
         if key >= self.pred and key < self.hash:
             return True
 
-        if self.hash <= self.pred and (key >= self.pred or key < self.hash): #On est à la fin (ou y a la boucle)
+        if self.hash < self.pred and key >= self.pred: #On est à la fin (ou y a la boucle)
             return True
 
         return False
 
-    def lookup(self ,cle, dht):
-        key = int(hashlib.sha1(str(cle).encode()).hexdigest(), base = 16)
+    def lookup(self ,key, dht):
+        #key = int(hashlib.sha1(str(key).encode()).hexdigest(), base = 16)
         #Ajouter le cas ou la cle de la fingerTable est supprimer de la dht    
         chemin = [self.hash] #Ajouter le noeud d'entrer à la liste des chemins
         nbSauts = 0
         if self.isincharge(key) or len(dht.keys()) == 1: #Si le premier pair est responsable de cle, le retourner directement
-            return chemin.pop(), nbSauts
+            return chemin.pop(), nbSauts, chemin
     
         nbSauts += 1
         actuel = self.hash 
         suiv = dht[actuel].suc
         distBest = -1
-
-        if actuel > key:
-            distBest = int((self.nbMax - actuel)) + key
+        
+        
+        if actuel > key : #On regarde devant 
+            distBest = int((self.nbMax - actuel)) + key  
         else:
             distBest = key - actuel
         
         while not dht[suiv].isincharge(key): #Si le next n'est pas en charge alors
             finger = dht[actuel].finger #Récupérer la finger table 
-            best = -1
-            #Chercher la distance minimale 
+            best = -1            
             dist = 0
-
+               
+        
+            #Chercher la distance minimale 
             i = 0
             while i < len(finger):
                 if finger[i] > key :
-                    dist = int((self.nbMax - finger[i])) + key
+                    dist = int((self.nbMax - finger[i])) + key 
                 else:
                     dist = key - finger[i]
-
+            
                 if dist < distBest :
                     distBest = dist
                     best = i
                 i += 1
             
+            
             if(best == -1):
                 actuel = dht[actuel].suc
                 if actuel > key :
-                    distBest = int((self.nbMax - actuel) + key)
+                    distBest = int((self.nbMax - actuel)) + key 
                 else:
                     distBest = key - actuel
             
@@ -175,100 +177,9 @@ class Peer :
             chemin.append(actuel)
             suiv = dht[actuel].suc
             nbSauts += 1
+           
         #Ajouter la derniere key
         chemin.append(suiv)
-        return suiv, nbSauts
-    
-    def publish_page(self, page_title, dht):
-
-        """Découper le titre en mots"""
-        split1 = page_title.split(' ')
-        listeMots = []
-        for elm in split1:
-            mots = elm.split('-')
-            for mot in mots:
-                mot = mot.lower()
-                if mot not in listeMots:
-                    listeMots.append(mot)
-        
-        for mot in listeMots:
-            """Chercher le paire responsable de la clé"""
-            res, dist = self.lookup(mot, dht)
-            mot = "word:"+mot
-            hashMot = int(hashlib.sha1(mot.encode()).hexdigest(), base = 16)
-            if hashMot in dht[res].table:
-                dht[res].table[hashMot].append(page_title)
-            else:
-                dht[res].table[hashMot] = [page_title]
-        
-        return len(listeMots)
-
-    def retrieve_page(self, page_title):
-        pageHash = int(hashlib.sha1(page_title.encode()).hexdigest(), base = 16)
-        #Si le paire est responsable de la page
-        if self.isincharge(pageHash):
-            #Si la page est stocker
-            page_title = "page:" + page_title
-            pageHash = int(hashlib.sha1(page_title.encode()).hexdigest(), base = 16)
-            if pageHash in self.table:
-                return self.table[pageHash]
-            
-            #La page n'est pas stocker
-            try:
-                contenu = wikipedia.page(page_title).content
-                self.table[pageHash] = contenu
-                return contenu
-            except:
-                return 'Page not found'
-            
-        #Récupèrer la page au prés de sont responsable
-        res, dist = self.lookup(page_title, self.listePeers)
-        contenu = self.listePeers[res].retrieve_page(page_title)
-        return contenu
+        return suiv, nbSauts, chemin
     
     
-    def search(self, search_string, dht):
-        """Découper le string en mots"""
-        split1 = search_string.split(" ")
-        listeMots = []
-        for elm in split1:
-            mots = elm.split('-')
-            for mot in mots:
-                mot = mot.lower()
-                if mot not in listeMots:
-                    listeMots.append(mot)
-  
-        if '' in listeMots:
-            listeMots.remove('')
-
-        listePage = []
-        pageMots = []
-        for mot in listeMots:
-            res, dist = self.lookup(mot, dht)
-            mot_copy = "word:"+mot
-            motHash = int(hashlib.sha1(mot_copy.encode()).hexdigest(), base = 16)
-            if motHash in dht[res].table:
-                pages = dht[res].table[motHash]
-                for page in pages:
-                    if page not in listePage:
-                        listePage.append(page)
-        
-        for page in listePage:
-            test = True
-            for mot in listeMots:
-                if mot not in page.lower():
-                    test = False
-                    break
-    
-            if test:
-                pageMots.append(page)
-        
-        if len(pageMots) > 0:
-            return pageMots
-        
-        if len(listePage) > 0:
-            logging.warning("Des mots sont indexer")
-            return listePage
-        
-        logging.warning("Aucun mot n'est indexer")
-        return listePage

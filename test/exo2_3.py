@@ -1,52 +1,42 @@
 from Peer import *
+import hashlib
+
+def hash(key):
+    return int(hashlib.sha1(str(key).encode()).hexdigest(), base = 16)
 
 
-"""
+
+nbElm = 10000
 dht = dict()
-peers = [1, 8, 14, 21, 32, 38, 42, 48, 51, 56]
+dht[hash(0)] = Peer(0, dht, 0)
+taille = len(dht[hash(0)].finger)
+min = hash(0)
+max = hash(0)
 
-for elm in peers:
-    dht[elm] = Peer(elm, elm, elm, elm, [])
-
-for elm in peers:
-    dht[elm].update_finger(peers)
-    print("La finger table de ", elm, " est : ", dht[elm].finger)
-
-"""
-
-
-
-
-dht = dict()
-dht[0] = Peer(0,0, 0)
-hash_list = [0]
-taille = len(dht[0].finger)
-min = 0
-max = 0
-for i in range(1, 1000):
-    dht[i] = Peer(i, i, 0)
-    hash_list.append(i)
+for i in range(1, nbElm):
+    dht[hash(i)] = Peer(i, dht, 0)
     
-for i in range(0, 1000):
-    dht[i].refresh_finger()
-    taille += len(dht[i].finger)
-    if len(dht[min].finger) > len(dht[i].finger):
-        min = i
+
+for i in range(0, nbElm):
+    dht[hash(i)].refresh_finger()
+    taille += len(dht[hash(i)].finger)
+    if len(dht[min].finger) > len(dht[hash(i)].finger):
+        min = hash(i)
     
-    if len(dht[max].finger) < len(dht[i].finger):
-        max = i
+    if len(dht[max].finger) < len(dht[hash(i)].finger):
+        max = hash(i)
 
 distMoy = 0
 maxDist = 0
 
-for i in range(1, 1000):
-    res, dist, chemin = dht[42].lookup(i, dht)
+for i in range(1, nbElm):
+    res, dist, chemin = dht[hash(42)].lookup(i, dht)
     distMoy += dist 
     if maxDist < dist:
         maxDist = dist 
 
-print("La taille moyenne des finger est ", taille/1000)
+print("La taille moyenne des finger est ", taille/nbElm)
 print("La taille min d'une finger est ", len(dht[min].finger))
 print("La taille max d'une finger est ", len(dht[max].finger))
-print("La distance moyenne est ", distMoy/1000, ' La distance max est ', maxDist)
+print("La distance moyenne est ", distMoy/nbElm, ' La distance max est ', maxDist)
                                                                                            
